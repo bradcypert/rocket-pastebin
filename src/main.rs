@@ -13,7 +13,7 @@ const HOST: Absolute<'static> = uri!("http://localhost:8000");
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, retrieve, upload])
+    rocket::build().mount("/", routes![index, retrieve, upload, delete])
 }
 
 #[get("/")]
@@ -44,4 +44,9 @@ async fn upload(paste: Data<'_>) -> std::io::Result<String> {
     let id = PasteId::new(ID_LENGTH);
     paste.open(128.kibibytes()).into_file(id.file_path()).await?;
     Ok(uri!(HOST, retrieve(id)).to_string())
+}
+
+#[delete("/<id>")]
+async fn delete(id: PasteId<'_>) -> std::io::Result<()> {
+    std::fs::remove_file(id.file_path())
 }
